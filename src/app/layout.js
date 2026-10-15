@@ -32,7 +32,7 @@ export default function RootLayout({ children }) {
       <body className="flex min-h-screen flex-col">
         <Navbar />
 
-        <div className="flex flex-1 overflow-hidden bg-white">
+        <div className="flex flex-1 overflow-hidden hover:block bg-white">
           <Sidebar />
 
           <main className="min-w-0 flex-1">

@@ -75,11 +75,18 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`sticky top-0 inset-y-0 left-0 z-40 flex flex-col border-r border-slate-200 bg-white transition-[width] duration-300 lg:hidden ${
+      className={`sticky top-0 inset-y-0 left-0 z-40 flex flex-col border-r border-slate-200 transition-[width] duration-300 lg:hidden ${
         collapsed ? "w-20" : "w-72"
       }`}
     >
-      {/* Logo */}
+
+
+      {/* Navigation */}
+      <nav
+        className={`flex-1 overflow-y-auto py-6 ${
+          collapsed ? "px-3" : "px-4"
+        }`}
+      >
       <div
         className={`flex h-20 shrink-0 items-center border-b border-slate-100 ${
           collapsed
@@ -106,13 +113,6 @@ export default function Sidebar() {
           )}
         </button>
       </div>
-
-      {/* Navigation */}
-      <nav
-        className={`flex-1 overflow-y-auto py-6 ${
-          collapsed ? "px-3" : "px-4"
-        }`}
-      >
         {!collapsed && (
           <p className="mb-3 px-4 text-xs font-semibold uppercase tracking-widest text-slate-400">
             Store
