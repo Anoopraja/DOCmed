@@ -1,6 +1,7 @@
+
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
-import User from "@/app/model/route";
+import User from "@/app/model/user.model.js";
 import connectDB from "@/lib/db";
 
 export async function POST(req) {
@@ -9,14 +10,25 @@ export async function POST(req) {
 
     const { username, email, password } = await req.json();
 
-    if (!email || !password || !username) {
+    if (!username?.trim() || !email?.trim() || !password) {
       return NextResponse.json(
-        { message: "Email usernameand password are required" },
+        { message: "Username, email and password are required" },
         { status: 400 }
       );
     }
 
-    const existingUser = await User.findOne({ email });
+    if (password.length < 8) {
+      return NextResponse.json(
+        { message: "Password must be at least 8 characters long" },
+        { status: 400 }
+      );
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const existingUser = await User.findOne({
+      email: normalizedEmail,
+    });
 
     if (existingUser) {
       return NextResponse.json(
@@ -25,29 +37,34 @@ export async function POST(req) {
       );
     }
 
-    const hash = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
-      username,
-      email,
-      password: hash,
+      username: username.trim(),
+      email: normalizedEmail,
+      password: hashedPassword,
     });
 
     return NextResponse.json(
       {
         message: "User created successfully",
         user: {
+          id: user._id.toString(),
           username: user.username,
-          id: user._id,
           email: user.email,
-          password: user.password,
         },
       },
       { status: 201 }
     );
-
   } catch (error) {
-    console.log(error);
+    console.error("Registration error:", error);
+
+    if (error.code === 11000) {
+      return NextResponse.json(
+        { message: "Username or email already exists" },
+        { status: 409 }
+      );
+    }
 
     return NextResponse.json(
       { message: "Error creating user" },

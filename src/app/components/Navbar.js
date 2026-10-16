@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import AuthButton from "@/app/api/auth/authButton.js";
+import RegisterLink from "@/app/api/auth/register/registerButton";
 import {
     Menu,
     X,
@@ -73,17 +74,17 @@ export default function Navbar() {
                         <ShoppingCart size={20} />
                     </Link>
 
-                    <button
+                    <div
                         className="inline-flex items-center justify-center rounded-xl bg-green-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition duration-200 hover:bg-green-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                         {/* <UserRound size={18} /> */}
                         <AuthButton />
-                    </button>
-                    <Link
-                        href="/register"
+                    </div>
+
+                    <div
                         className="inline-flex items-center justify-center rounded-xl bg-green-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition duration-200 hover:bg-green-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                     >
-                        Register
-                    </Link>
+                        <RegisterLink />
+                    </div>
                 </div>
 
                 {/* Mobile menu button */}
@@ -123,17 +124,15 @@ export default function Navbar() {
                                 Cart
                             </Link>
 
-                            <button
-                                className="inline-flex items-center justify-center rounded-xl bg-green-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition duration-200 hover:bg-green-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-                                {/* <UserRound size={18} /> */}
+
+                            <div className="inline-flex items-center justify-center rounded-xl bg-green-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition duration-200 hover:bg-green-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                                 <AuthButton />
-                            </button>
-                            <Link
-                                href="/register"
-                                className="inline-flex items-center justify-center rounded-xl bg-green-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition duration-200 hover:bg-green-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                            >
-                                Register
-                            </Link>
+                            </div>
+                            <div className="inline-flex items-center justify-center rounded-xl bg-green-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition duration-200 hover:bg-green-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                <RegisterLink />
+                            </div>
+
+
                         </div>
                     </div>
                 </div>
