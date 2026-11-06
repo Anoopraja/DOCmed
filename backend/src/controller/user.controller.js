@@ -7,9 +7,26 @@ dotenv.config();
 
 const registerUser = async (req, res) => {
     try {
-        console.log("BODY:", req.body);
+        const username = req.body.username?.trim();
+        const gmail = req.body.gmail?.trim().toLowerCase();
+        const { password } = req.body;
 
-        const { username, gmail, password } = req.body;
+        if (!username || !gmail || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Username, email and password are required"
+            });
+        }
+
+        const existingUser = await User.findOne({ gmail });
+
+        if (existingUser) {
+            return res.status(409).json({
+                success: false,
+                message: "Email already registered"
+            });
+        }
+
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(password, salt);
         const user = await User.create({
@@ -17,16 +34,22 @@ const registerUser = async (req, res) => {
             gmail,
             password: hash
         });
-        console.log("USER CREATED:", user);
-        res.status(201).json({
+
+        return res.status(201).json({
             success: true,
             message: "User registered successfully",
-            data: user
+            data: {
+                id: user._id,
+                username: user.username,
+                gmail: user.gmail,
+                role: user.role,
+                password: user.password
+            }
         });
 
     } catch (error) {
-        console.log("REGISTER ERROR:", error);
-        res.status(500).json({
+        console.error("REGISTER ERROR:", error);
+        return res.status(500).json({
             success: false,
             message: error.message
         });
