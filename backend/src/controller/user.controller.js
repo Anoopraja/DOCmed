@@ -32,7 +32,8 @@ const registerUser = async (req, res) => {
         const user = await User.create({
             username,
             gmail,
-            password: hash
+            password: hash,
+            role: "user"
         });
 
         return res.status(201).json({
@@ -43,7 +44,8 @@ const registerUser = async (req, res) => {
                 username: user.username,
                 gmail: user.gmail,
                 role: user.role,
-                password: user.password
+                password: user.passwordls
+
             }
         });
 
@@ -182,7 +184,7 @@ const adminLogin = async (req, res) => {
     }
 };
 
-const getCurrentAdmin = async (req,res) => {
+const getCurrentAdmin = async (req, res) => {
 
     try {
         const token = req.cookies.token;
@@ -216,19 +218,19 @@ const getCurrentAdmin = async (req,res) => {
         }
 
         return res.status(200).json({
-    success: true,
-    admin: {
-        id: admin._id,
-        username: admin.username,
-        email: admin.gmail,
-        college: admin.college,
-        branch: admin.branch,
-        year: admin.year,
-        bio: admin.bio,
-        profileImage: admin.profileImage,
-        role: admin.role
-    }
-});
+            success: true,
+            admin: {
+                id: admin._id,
+                username: admin.username,
+                email: admin.gmail,
+                college: admin.college,
+                branch: admin.branch,
+                year: admin.year,
+                bio: admin.bio,
+                profileImage: admin.profileImage,
+                role: admin.role
+            }
+        });
 
     } catch (error) {
         return res.status(401).json({
@@ -464,7 +466,8 @@ const shopownerRegister = async (req, res) => {
         const {
             username,
             gmail,
-            password
+            password,
+            role
         } = req.body;
 
         if (!username || !gmail || !password) {
@@ -514,4 +517,75 @@ const shopownerRegister = async (req, res) => {
     }
 };
 
-export { registerUser, getAllUser, userLogin, userLogout, updateProfile, getCurrentUser, adminRegister, adminLogin, getCurrentAdmin, shopownerRegister }
+const shopownerLogin = async (req, res) => {
+    try {
+        const { gmail, password } = req.body;
+
+        if (!gmail || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Email and password are required"
+            });
+        }
+
+        const user = await User.findOne({ gmail, role: "shopowner" });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Shopowner not found"
+            });
+        }
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(400).json({
+                success: false,
+                message: "wrong password"
+            });
+        }
+        // JWT TOKEN CREATE
+        const token = jwt.sign(
+            {
+                userId: user._id,
+                role: user.role
+            },
+            process.env.SECRET_KEY,
+            {
+                expiresIn: "7d"
+            }
+        );
+
+        // console.log("JWT TOKEN:", token);
+
+        // TOKEN COOKIE ME SAVE
+        const isHttps = req.secure || req.headers["x-forwarded-proto"] === "https";
+
+        // Save token in cookie
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: isHttps,
+            sameSite: isHttps ? "none" : "lax",
+            path: "/",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "shopownerLogin successful",
+            user: {
+                id: user._id,
+                username: user.username,
+                gmail: user.gmail
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
+
+export { registerUser, getAllUser, userLogin, userLogout, updateProfile, getCurrentUser, adminRegister, adminLogin, getCurrentAdmin, shopownerRegister, shopownerLogin }
