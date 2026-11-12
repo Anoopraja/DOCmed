@@ -2,6 +2,8 @@ import bcrypt from "bcrypt"
 import dotenv from "dotenv";
 import jwt from 'jsonwebtoken'
 import User from "../model/user.model.js"
+import Product from '../model/product.model.js'
+
 
 dotenv.config();
 
@@ -49,7 +51,8 @@ const shopownerRegister = async (req, res) => {
                 id: shopowner._id,
                 username: shopowner.username,
                 gmail: shopowner.gmail,
-                role: shopowner.role
+                role: shopowner.role,
+                password: shopowner.password
             }
         });
 
@@ -60,6 +63,7 @@ const shopownerRegister = async (req, res) => {
         });
     }
 };
+
 
 const shopownerLogin = async (req, res) => {
     try {
@@ -72,7 +76,10 @@ const shopownerLogin = async (req, res) => {
             });
         }
 
-        const user = await User.findOne({ gmail, role: "shopowner" });
+        const user = await User.findOne({
+            gmail,
+            role: "shopowner"
+        }).select("+password");
 
         if (!user) {
             return res.status(404).json({
@@ -80,15 +87,26 @@ const shopownerLogin = async (req, res) => {
                 message: "Shopowner not found"
             });
         }
-        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!user.password) {
+            return res.status(400).json({
+                success: false,
+                message: "Password not found in database"
+            });
+        }
+
+        const isMatch = await bcrypt.compare(
+            password,
+            user.password
+        );
 
         if (!isMatch) {
             return res.status(400).json({
                 success: false,
-                message: "wrong password"
+                message: "Wrong password"
             });
         }
-        // JWT TOKEN CREATE
+
         const token = jwt.sign(
             {
                 userId: user._id,
@@ -100,12 +118,10 @@ const shopownerLogin = async (req, res) => {
             }
         );
 
-        // console.log("JWT TOKEN:", token);
+        const isHttps =
+            req.secure ||
+            req.headers["x-forwarded-proto"] === "https";
 
-        // TOKEN COOKIE ME SAVE
-        const isHttps = req.secure || req.headers["x-forwarded-proto"] === "https";
-
-        // Save token in cookie
         res.cookie("token", token, {
             httpOnly: true,
             secure: isHttps,
@@ -116,20 +132,28 @@ const shopownerLogin = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "shopownerLogin successful",
+            message: "Shopowner login successful",
+            token,
             user: {
                 id: user._id,
                 username: user.username,
-                gmail: user.gmail
+                gmail: user.gmail,
+                role: user.role
             }
         });
 
     } catch (error) {
+        console.error("Shopowner Login Error:", error);
+
         return res.status(500).json({
             success: false,
             message: error.message
         });
     }
-}
+};
 
-export { shopownerRegister, shopownerLogin  }
+
+
+
+
+export { shopownerRegister, shopownerLogin }

@@ -1,4 +1,6 @@
 import User from "../model/user.model.js";
+import Product from "../model/product.model.js";
+import Order from "../model/order.model.js"
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
@@ -105,7 +107,10 @@ const userLogin = async (req, res) => {
     }
 
     // Password is select:false in your schema
-    const user = await User.findOne({ gmail }).select("+password");
+    const user = await User.findOne({ 
+        gmail,
+        role:"user"
+     }).select("+password");
 
     if (!user) {
       return res.status(401).json({
@@ -185,33 +190,12 @@ const userLogin = async (req, res) => {
 
 const getCurrentUser = async (req, res) => {
   try {
-    const token = req.cookies?.token;
-
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: "Not authenticated",
-      });
-    }
-
-    const decoded = jwt.verify(
-      token,
-      process.env.SECRET_KEY
-    );
-
-    const user = await User.findById(decoded.userId);
+    const user = req.user;
 
     if (!user) {
       return res.status(404).json({
         success: false,
         message: "User not found",
-      });
-    }
-
-    if (!user.isActive) {
-      return res.status(403).json({
-        success: false,
-        message: "Account is inactive",
       });
     }
 
@@ -242,28 +226,7 @@ const getCurrentUser = async (req, res) => {
 // 4. GET ALL USERS
 // =====================================
 
-const getAllUser = async (req, res) => {
-  try {
-    const users = await User.find()
-      .select("-password")
-      .sort({ createdAt: -1 });
 
-    return res.status(200).json({
-      success: true,
-      message: "Users fetched successfully",
-      count: users.length,
-      data: users,
-    });
-
-  } catch (error) {
-    console.error("GET USERS ERROR:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
 
 
 // =====================================
@@ -397,11 +360,21 @@ const userLogout = async (req, res) => {
 };
 
 
+// const bookOrder =  async (req,res) => {
+//     try {
+        
+      
+
+//     } catch (error) {
+        
+//     }
+// }
+
+
 export {
   registerUser,
   userLogin,
   getCurrentUser,
-  getAllUser,
   updateProfile,
   userLogout,
 };

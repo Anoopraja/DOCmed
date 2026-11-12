@@ -58,10 +58,12 @@ const adminLogin = async (req, res) => {
             });
         }
 
-        // Find admin/user by email
-        const admin = await User.findOne({ gmail });
+        const user = await User.findOne({
+            gmail,
+            role: "admin"
+        }).select("+password");
 
-        if (!admin) {
+        if (!user) {
             return res.status(404).json({
                 success: false,
                 message: "Admin not found"
@@ -71,7 +73,7 @@ const adminLogin = async (req, res) => {
         // Check password
         const isMatch = await bcrypt.compare(
             password,
-            admin.password
+            user.password
         );
 
         if (!isMatch) {
@@ -82,7 +84,7 @@ const adminLogin = async (req, res) => {
         }
 
         // Check admin role
-        if (admin.role !== "admin") {
+        if (user.role !== "admin") {
             return res.status(403).json({
                 success: false,
                 message: "You are not an admin"
@@ -92,7 +94,8 @@ const adminLogin = async (req, res) => {
         // Create JWT
         const token = jwt.sign(
             {
-                userId: admin._id,
+                userId: user._id,
+                role: user.role,
             },
             process.env.SECRET_KEY,
             {
@@ -115,10 +118,10 @@ const adminLogin = async (req, res) => {
             success: true,
             message: "Admin logged in successfully",
             data: {
-                id: admin._id,
-                username: admin.username,
-                gmail: admin.gmail,
-                role: admin.role
+                id: user._id,
+                username: user.username,
+                gmail: user.gmail,
+                role: user.role
             }
         });
 
@@ -134,21 +137,7 @@ const adminLogin = async (req, res) => {
 const getCurrentAdmin = async (req, res) => {
 
     try {
-        const token = req.cookies.token;
-
-        if (!token) {
-            return res.status(401).json({
-                success: false,
-                message: "Not authenticated"
-            });
-        }
-
-        const { userId } = jwt.verify(
-            token,
-            process.env.SECRET_KEY
-        );
-
-        const admin = await User.findById(userId).select("-password");
+        const admin = req.user;
 
         if (!admin) {
             return res.status(401).json({
@@ -186,4 +175,56 @@ const getCurrentAdmin = async (req, res) => {
         });
     }
 }
-export { adminRegister, adminLogin, getCurrentAdmin };
+const adminLogout = async (req, res) => {
+  try {
+    const isHttps =
+      req.secure ||
+      req.headers["x-forwarded-proto"] === "https";
+
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: isHttps,
+      sameSite: isHttps ? "none" : "lax",
+      path: "/",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Logout successful",
+    });
+
+  } catch (error) {
+    console.error("LOGOUT ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const getAllUser = async (req, res) => {
+  try {
+    const users = await User.find()
+      .select("-password")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      message: "Users fetched successfully",
+      count: users.length,
+      data: users,
+    });
+
+  } catch (error) {
+    console.error("GET USERS ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+export { adminRegister, adminLogin, getCurrentAdmin, adminLogout, getAllUser };
