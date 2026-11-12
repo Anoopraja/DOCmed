@@ -1,591 +1,407 @@
-import User from "../model/user.model.js"
-import bcrypt from "bcrypt"
+import User from "../model/user.model.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import jwt from 'jsonwebtoken'
+
 
 dotenv.config();
 
+
+// =====================================
+// 1. REGISTER USER
+// =====================================
+
 const registerUser = async (req, res) => {
-    try {
-        const username = req.body.username?.trim();
-        const gmail = req.body.gmail?.trim().toLowerCase();
-        const { password } = req.body;
+  try {
+    const username = req.body.username?.trim();
+    const gmail = req.body.gmail?.trim().toLowerCase();
+    const phone = req.body.phone?.trim();
+    const { password } = req.body;
 
-        if (!username || !gmail || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "Username, email and password are required"
-            });
-        }
-
-        const existingUser = await User.findOne({ gmail });
-
-        if (existingUser) {
-            return res.status(409).json({
-                success: false,
-                message: "Email already registered"
-            });
-        }
-
-        const salt = await bcrypt.genSalt(10);
-        const hash = await bcrypt.hash(password, salt);
-        const user = await User.create({
-            username,
-            gmail,
-            password: hash,
-            role: "user"
-        });
-
-        return res.status(201).json({
-            success: true,
-            message: "User registered successfully",
-            data: {
-                id: user._id,
-                username: user.username,
-                gmail: user.gmail,
-                role: user.role,
-                password: user.passwordls
-
-            }
-        });
-
-    } catch (error) {
-        console.error("REGISTER ERROR:", error);
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        });
+    if (!username || !gmail || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Username, gmail and password are required",
+      });
     }
-}
 
-const adminRegister = async (req, res) => {
-    try {
-
-        const {
-            username,
-            gmail,
-            password
-        } = req.body;
-
-        const salt = await bcrypt.genSalt(10);
-
-        const hash = await bcrypt.hash(password, salt);
-
-        const admin = await User.create({
-            username,
-            gmail,
-            password: hash,
-            role: "admin"
-        });
-
-        return res.status(201).json({
-            success: true,
-            message: "Admin registered successfully",
-            data: {
-                id: admin._id,
-                username: admin.username,
-                gmail: admin.gmail,
-                role: admin.role
-            }
-        });
-
-    } catch (error) {
-
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        });
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters",
+      });
     }
+
+    // Check existing email
+    const existingUser = await User.findOne({ gmail });
+
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: "Email already registered",
+      });
+    }
+
+    // Check phone only when provided
+    if (phone) {
+      const existingPhone = await User.findOne({ phone });
+
+      if (existingPhone) {
+        return res.status(409).json({
+          success: false,
+          message: "Phone number already registered",
+        });
+      }
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      username,
+      gmail,
+      phone: phone || undefined,
+      password: hashedPassword,
+      role: "user",
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "User registered successfully",
+      data: {
+        id: user._id,
+        username: user.username,
+        gmail: user.gmail,
+        phone: user.phone,
+        profileImage: user.profileImage,
+        role: user.role,
+      },
+    });
+
+  } catch (error) {
+    console.error("REGISTER ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
 
-const adminLogin = async (req, res) => {
-    try {
-        const gmail = req.body.gmail?.trim().toLowerCase();
-        const { password } = req.body;
 
-        if (!gmail || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "Email and password are required"
-            });
-        }
-
-        // Find admin/user by email
-        const admin = await User.findOne({ gmail });
-
-        if (!admin) {
-            return res.status(404).json({
-                success: false,
-                message: "Admin not found"
-            });
-        }
-
-        // Check password
-        const isMatch = await bcrypt.compare(
-            password,
-            admin.password
-        );
-
-        if (!isMatch) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid password"
-            });
-        }
-
-        // Check admin role
-        if (admin.role !== "admin") {
-            return res.status(403).json({
-                success: false,
-                message: "You are not an admin"
-            });
-        }
-
-        // Create JWT
-        const token = jwt.sign(
-            {
-                userId: admin._id,
-            },
-            process.env.SECRET_KEY,
-            {
-                expiresIn: "7d"
-            }
-        );
-
-        const isHttps = req.secure || req.headers["x-forwarded-proto"] === "https";
-
-        // Store the cookie with local and deployed transport settings.
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: isHttps,
-            sameSite: isHttps ? "none" : "lax",
-            path: "/",
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
-
-        return res.status(200).json({
-            success: true,
-            message: "Admin logged in successfully",
-            data: {
-                id: admin._id,
-                username: admin.username,
-                gmail: admin.gmail,
-                role: admin.role
-            }
-        });
-
-    } catch (error) {
-        console.error("Admin login error:", error);
-
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-};
-
-const getCurrentAdmin = async (req, res) => {
-
-    try {
-        const token = req.cookies.token;
-
-        if (!token) {
-            return res.status(401).json({
-                success: false,
-                message: "Not authenticated"
-            });
-        }
-
-        const { userId } = jwt.verify(
-            token,
-            process.env.SECRET_KEY
-        );
-
-        const admin = await User.findById(userId).select("-password");
-
-        if (!admin) {
-            return res.status(401).json({
-                success: false,
-                message: "Admin not found"
-            });
-        }
-
-        if (admin.role !== "admin") {
-            return res.status(403).json({
-                success: false,
-                message: "Admin access required"
-            });
-        }
-
-        return res.status(200).json({
-            success: true,
-            admin: {
-                id: admin._id,
-                username: admin.username,
-                email: admin.gmail,
-                college: admin.college,
-                branch: admin.branch,
-                year: admin.year,
-                bio: admin.bio,
-                profileImage: admin.profileImage,
-                role: admin.role
-            }
-        });
-
-    } catch (error) {
-        return res.status(401).json({
-            success: false,
-            message: "Invalid admin session"
-        });
-    }
-}
-
-const getAllUser = async (req, res) => {
-    try {
-        const AllUser = await User.find()
-        res.status(200).json({
-            success: true,
-            message: "All users fetched successfully",
-            data: AllUser,
-        });
-    }
-    catch (error) {
-        console.log("user Fetching ERROR:", error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-}
-
-// const getUserById = async (req, res) => {
-//     try {
-
-//         const { username } = req.params;
-
-//         const user = await User.findOne({ username });
-
-//         if (!user) {
-//             return res.status(404).json({
-//                 success: false,
-//                 message: "User not found"
-//             });
-//         }
-
-//         return res.status(200).json({
-//             success: true,
-//             message: "Ye raha aapka user",
-//             data: user
-//         });
-
-//     } catch (error) {
-
-//         return res.status(500).json({
-//             success: false,
-//             message: "Kuch to galat hai"
-//         });
-//     }
-// };
-
+// =====================================
+// 2. USER LOGIN
+// =====================================
 
 const userLogin = async (req, res) => {
-    try {
+  try {
+    const gmail = req.body.gmail?.trim().toLowerCase();
+    const { password } = req.body;
 
-        const gmail = req.body.gmail?.trim().toLowerCase();
-        const { password } = req.body;
-
-        if (!gmail || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "Email and password are required"
-            });
-        }
-
-        const user = await User.findOne({ gmail })
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
-        }
-        // console.log("LOGIN PASSWORD:", password);
-        // console.log("DATABASE HASH:", user.password);
-
-        const isPasswordCorrect = await bcrypt.compare(
-            password,
-            user.password
-        );
-        // console.log("PASSWORD MATCH:", isPasswordCorrect);
-
-        if (!isPasswordCorrect) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid password"
-            });
-        }
-
-
-        // JWT TOKEN CREATE
-        const token = jwt.sign(
-            {
-                userId: user._id
-            },
-            process.env.SECRET_KEY,
-            {
-                expiresIn: "7d"
-            }
-        );
-
-        // console.log("JWT TOKEN:", token);
-
-        // TOKEN COOKIE ME SAVE
-        const isHttps = req.secure || req.headers["x-forwarded-proto"] === "https";
-
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: isHttps,
-            sameSite: isHttps ? "none" : "lax",
-            path: "/",
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
-
-        return res.status(200).json({
-            success: true,
-            message: "Login successful",
-            user: {
-                id: user._id,
-                username: user.username,
-                gmail: user.gmail
-            }
-        });
-
+    if (!gmail || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Gmail and password are required",
+      });
     }
-    catch (error) {
-        console.log("LOGIN ERROR:", error);
 
-        res.status(500).json({
-            success: false,
-            message: "Something went wrong"
-        });
+    // Password is select:false in your schema
+    const user = await User.findOne({ gmail }).select("+password");
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid gmail or password",
+      });
     }
-}
 
-
-const updateProfile = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const updateData = req.body;
-        const user = await User.findByIdAndUpdate(
-            { _id: id },
-            updateData,
-            { returnDocument: "after" }
-        );
-
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User nahi mila"
-            });
-        }
-
-        return res.status(200).json({
-            success: true,
-            message: "Profile successfully update ho gaya",
-            user: user
-        });
-
-    } catch (err) {
-
-        return res.status(500).json({
-            success: false,
-            message: "Kuch to gadbad hai",
-            error: err.message
-        });
-
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is inactive",
+      });
     }
+
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      user.password
+    );
+
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid gmail or password",
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        userId: user._id,
+        role: user.role,
+      },
+      process.env.SECRET_KEY,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    const isHttps =
+      req.secure ||
+      req.headers["x-forwarded-proto"] === "https";
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: isHttps,
+      sameSite: isHttps ? "none" : "lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      user: {
+        id: user._id,
+        username: user.username,
+        gmail: user.gmail,
+        profileImage: user.profileImage,
+        role: user.role,
+      },
+    });
+
+  } catch (error) {
+    console.error("LOGIN ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
 };
 
-const userLogout = async (req, res) => {
-    try {
-        res.clearCookie("token", {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            path: "/"
-        });
 
-        return res.status(200).json({
-            success: true,
-            message: "Logout successful"
-        });
-
-    } catch (error) {
-        console.log("LOGOUT ERROR:", error);
-
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-};
+// =====================================
+// 3. GET CURRENT USER
+// =====================================
 
 const getCurrentUser = async (req, res) => {
-    try {
-        const token = req.cookies.token;
-        if (!token) {
-            return res.status(401).json({ success: false, message: "Not authenticated" });
-        }
+  try {
+    const token = req.cookies?.token;
 
-        const { userId } = jwt.verify(token, process.env.SECRET_KEY);
-        const user = await User.findById(userId).select("-password");
-        if (!user) {
-            return res.status(401).json({ success: false, message: "User not found" });
-        }
-
-        return res.status(200).json({
-            success: true, user: {
-                id: user._id,
-                username: user.username,
-                email: user.gmail,
-                college: user.college,
-                branch: user.branch,
-                year: user.year,
-                bio: user.bio,
-                profileImage: user.profileImage,
-                role: user.role
-            }
-        });
-    } catch (error) {
-        return res.status(401).json({ success: false, message: "Invalid session" });
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Not authenticated",
+      });
     }
+
+    const decoded = jwt.verify(
+      token,
+      process.env.SECRET_KEY
+    );
+
+    const user = await User.findById(decoded.userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: "Account is inactive",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      user: {
+        id: user._id,
+        username: user.username,
+        gmail: user.gmail,
+        phone: user.phone,
+        profileImage: user.profileImage,
+        role: user.role,
+        isVerified: user.isVerified,
+        addresses: user.addresses,
+      },
+    });
+
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid session",
+    });
+  }
 };
 
 
-const shopownerRegister = async (req, res) => {
-    try {
-        const {
-            username,
-            gmail,
-            password,
-            role
-        } = req.body;
+// =====================================
+// 4. GET ALL USERS
+// =====================================
 
-        if (!username || !gmail || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "All fields are required"
-            });
-        }
+const getAllUser = async (req, res) => {
+  try {
+    const users = await User.find()
+      .select("-password")
+      .sort({ createdAt: -1 });
 
-        const existingUser = await User.findOne({ gmail });
+    return res.status(200).json({
+      success: true,
+      message: "Users fetched successfully",
+      count: users.length,
+      data: users,
+    });
 
-        if (existingUser) {
-            return res.status(409).json({
-                success: false,
-                message: "Email already registered"
-            });
-        }
+  } catch (error) {
+    console.error("GET USERS ERROR:", error);
 
-        const salt = await bcrypt.genSalt(10);
-        const hash = await bcrypt.hash(password, salt);
-
-        const shopowner = await User.create({
-            username,
-            gmail,
-            password: hash,
-            role: "shopowner",
-            isVerified: false,
-            isActive: true
-        });
-
-        return res.status(201).json({
-            success: true,
-            message: "Shopowner registered successfully",
-            data: {
-                id: shopowner._id,
-                username: shopowner.username,
-                gmail: shopowner.gmail,
-                role: shopowner.role
-            }
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
 
-const shopownerLogin = async (req, res) => {
-    try {
-        const { gmail, password } = req.body;
 
-        if (!gmail || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "Email and password are required"
-            });
-        }
+// =====================================
+// 5. UPDATE USER PROFILE
+// =====================================
 
-        const user = await User.findOne({ gmail, role: "shopowner" });
+const updateProfile = async (req, res) => {
+  try {
+    // Auth middleware must attach the logged-in user
+    const userId = req.user._id;
 
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "Shopowner not found"
-            });
-        }
-        const isMatch = await bcrypt.compare(password, user.password);
+    // Only allow these fields to be updated
+    const allowedFields = [
+      "username",
+      "phone",
+      "profileImage",
+    ];
 
-        if (!isMatch) {
-            return res.status(400).json({
-                success: false,
-                message: "wrong password"
-            });
-        }
-        // JWT TOKEN CREATE
-        const token = jwt.sign(
-            {
-                userId: user._id,
-                role: user.role
-            },
-            process.env.SECRET_KEY,
-            {
-                expiresIn: "7d"
-            }
-        );
+    const updateData = {};
 
-        // console.log("JWT TOKEN:", token);
-
-        // TOKEN COOKIE ME SAVE
-        const isHttps = req.secure || req.headers["x-forwarded-proto"] === "https";
-
-        // Save token in cookie
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: isHttps,
-            sameSite: isHttps ? "none" : "lax",
-            path: "/",
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
-
-        return res.status(200).json({
-            success: true,
-            message: "shopownerLogin successful",
-            user: {
-                id: user._id,
-                username: user.username,
-                gmail: user.gmail
-            }
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        });
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
     }
-}
 
-export { registerUser, getAllUser, userLogin, userLogout, updateProfile, getCurrentUser, adminRegister, adminLogin, getCurrentAdmin, shopownerRegister, shopownerLogin }
+    if (updateData.username !== undefined) {
+      updateData.username = updateData.username.trim();
+
+      if (!updateData.username) {
+        return res.status(400).json({
+          success: false,
+          message: "Username cannot be empty",
+        });
+      }
+    }
+
+    if (updateData.phone !== undefined) {
+      updateData.phone = updateData.phone.trim();
+
+      if (!updateData.phone) {
+        return res.status(400).json({
+          success: false,
+          message: "Phone cannot be empty",
+        });
+      }
+
+      const existingPhone = await User.findOne({
+        phone: updateData.phone,
+        _id: { $ne: userId },
+      });
+
+      if (existingPhone) {
+        return res.status(409).json({
+          success: false,
+          message: "Phone number already registered",
+        });
+      }
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No valid profile fields provided",
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateData },
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: user,
+    });
+
+  } catch (error) {
+    console.error("UPDATE PROFILE ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+// =====================================
+// 6. USER LOGOUT
+// =====================================
+
+const userLogout = async (req, res) => {
+  try {
+    const isHttps =
+      req.secure ||
+      req.headers["x-forwarded-proto"] === "https";
+
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: isHttps,
+      sameSite: isHttps ? "none" : "lax",
+      path: "/",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Logout successful",
+    });
+
+  } catch (error) {
+    console.error("LOGOUT ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+export {
+  registerUser,
+  userLogin,
+  getCurrentUser,
+  getAllUser,
+  updateProfile,
+  userLogout,
+};
