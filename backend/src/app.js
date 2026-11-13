@@ -4,7 +4,7 @@ import userRoute from "./route/user.route.js"
 import adminRoute from "./route/admin.route.js"
 import shopownerRoute from "./route/shopwner.route.js"
 import productRoute from "./route/product.route.js"
-
+import orderRoute from "./route/order.route.js"
 
 const app = express()
 app.use(express.json());
@@ -18,6 +18,7 @@ app.use("/user", userRoute)
 app.use("/admin", adminRoute)
 app.use("/shopowner", shopownerRoute)
 app.use("/product", productRoute)
+app.use("/order", orderRoute)
 
 
 
