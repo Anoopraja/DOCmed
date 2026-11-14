@@ -1,4 +1,3 @@
-
 import Navbar from "./pages/Navbar.jsx";
 import Home from "./pages/Home.jsx";
 import Footer from "./pages/Footer.jsx";

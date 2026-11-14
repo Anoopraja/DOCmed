@@ -177,7 +177,10 @@ function DoctorRow({ doc }) {
 function HeroDots({ progress }) {
   const ref = useRef(null);
   const prog = useRef(0);
-  prog.current = progress;
+
+  useEffect(() => {
+    prog.current = progress;
+  }, [progress]);
 
   useEffect(() => {
     const canvas = ref.current;

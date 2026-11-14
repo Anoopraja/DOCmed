@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Heart, Link2, Menu, Plus, ShoppingCart, X } from "lucide-react";
+import { Heart, Menu, Plus, ShoppingCart, X } from "lucide-react";
 const navItems = [
   { label: "Home", to: "/" },
   { label: "Medicines", to: "/medicines" },
@@ -53,12 +53,12 @@ export default function Navbar({ cartCount = 0 }) {
               </span>
             )}
           </Link>
-          <Link
-            to="/mailto:support@docmed.com?subject=DOCmed%20account"
+          <a
+            href="mailto:support@docmed.com?subject=DOCmed%20account"
             className="hidden rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-emerald-300 sm:block"
           >
             Login
-          </Link>
+          </a>
           <button
             type="button"
             aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
