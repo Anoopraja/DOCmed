@@ -1,4 +1,4 @@
-import React from "react";
+
 import Products from './ProductCard.jsx';
 
 function Medicine() {
