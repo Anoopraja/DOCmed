@@ -6,11 +6,10 @@ import App from './App.jsx'
 import React from 'react'
 
 createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+  // <StrictMode>
     <BrowserRouter>
-    <StrictMode>
+      {/* <StrictMode> */}
       <App />
-    </StrictMode>
+      {/* </StrictMode> */}
     </BrowserRouter>
-  </React.StrictMode>
 )
