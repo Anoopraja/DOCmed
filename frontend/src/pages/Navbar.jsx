@@ -8,7 +8,7 @@ const navItems = [
   { label: "Doctors", to: "/doctors" },
   { label: "Emergency", to: "/emergency" },
 ];
-export default function Navbar({ cartCount = 0 }) {
+const Navbar = ({ cartCount = 0 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const closeMenu = () => setMenuOpen(false);
@@ -16,14 +16,14 @@ export default function Navbar({ cartCount = 0 }) {
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#171d26]/95 text-white backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 md:px-10">
-        <a href="/" aria-label="DOCmed home" className="flex shrink-0 items-center gap-2">
+        <Link to="/" aria-label="DOCmed home" className="flex shrink-0 items-center gap-2">
           <div className="rounded-xl bg-emerald-500 p-2 text-black">
             <Plus size={22} strokeWidth={3} />
           </div>
           <span className="text-xl font-bold tracking-tight">
             DOC<span className="text-emerald-400">med</span>
           </span>
-        </a>
+        </Link>
 
         <nav className="hidden items-center gap-8 text-sm text-slate-300 md:flex" aria-label="Primary navigation">
           {navItems.map((item) => (
@@ -53,12 +53,12 @@ export default function Navbar({ cartCount = 0 }) {
               </span>
             )}
           </Link>
-          <a
-            href="mailto:support@docmed.com?subject=DOCmed%20account"
+          <Link
+            to="/login"
             className="hidden rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-emerald-300 sm:block"
           >
             Login
-          </a>
+          </Link>
           <button
             type="button"
             aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
@@ -88,3 +88,6 @@ export default function Navbar({ cartCount = 0 }) {
     </header>
   );
 }
+
+
+export default Navbar;
