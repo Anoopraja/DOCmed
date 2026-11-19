@@ -21,7 +21,7 @@ const Navbar = ({ cartCount = 0 }) => {
             <Plus size={22} strokeWidth={3} />
           </div>
           <span className="text-xl font-bold tracking-tight">
-            DOC<span className="text-emerald-400">med</span>
+            DOC<span className="text-[#F97316]">med</span>
           </span>
         </Link>
 
@@ -42,7 +42,7 @@ const Navbar = ({ cartCount = 0 }) => {
             <Heart size={19} />
           </Link>
           <Link
-            to="/medicines"
+            to="/cart"
             aria-label={`View cart${cartCount > 0 ? ` with ${cartCount} items` : ""}`}
             className="relative rounded-full border border-white/10 p-2.5 text-slate-300 transition hover:bg-slate-700 hover:text-emerald-400"
           >

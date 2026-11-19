@@ -2,7 +2,9 @@ import Medicine from "./pages/Medicines";
 import Home from "./pages/Home";
 import Footer from "./pages/Footer";
 import Navbar from "./pages/Navbar.jsx";
+import Cart from "./pages/Cart.jsx";
 import { Route, Routes } from "react-router-dom";
+import Doctor from "./pages/Doctor.jsx";
 
 export default function App() {
   return (
@@ -12,6 +14,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/medicines" element={<Medicine />} />
+          <Route path="/doctors" element={<Doctor />} />
+          <Route path="/cart" element={<Cart />} />
         </Routes>
       </main>
       <Footer />
