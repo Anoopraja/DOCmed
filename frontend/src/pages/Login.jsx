@@ -1,4 +1,4 @@
-
+import api from "../../api/api.js"
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -16,15 +16,15 @@ import {
 
 export default function Login() {
   const navigate = useNavigate();
-
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     remember: false,
-  });
 
-  const [loading, setLoading] = useState(false);
+  });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -34,13 +34,35 @@ export default function Login() {
       [name]: type === "checkbox" ? checked : value,
     }));
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
-    // Connect your login API here
-    console.log(formData);
+    try {
+      setLoading(true);
+
+      const response = await api.post("/user/login", {
+        gmail: formData.email,   // map email -> gmail
+        password: formData.password,
+      });
+
+      console.log(response.data);
+
+      // Adjust to whatever your backend returns
+      if (response.data.token) {
+        const storage = formData.remember ? localStorage : sessionStorage;
+        storage.setItem("token", response.data.token);
+      }
+
+      navigate("/"); // go to home after login
+    } catch (err) {
+      setError(err.response?.data?.message || "Something went wrong. Try again.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+
 
   return (
     <div className="min-h-screen bg-[#101713] text-white flex items-center justify-center px-4 py-10">
@@ -233,9 +255,13 @@ export default function Login() {
                 disabled={loading}
                 className="w-full flex items-center justify-center gap-2 bg-[#b5f36d] hover:bg-[#a2df5c] text-[#152019] font-bold py-4 rounded-xl transition duration-300 shadow-lg shadow-green-900/20 disabled:opacity-50"
               >
-                Sign In
-                <ArrowRight size={19} />
+                {loading ? "Signing In..." : "Sign In"}
               </button>
+              {error && (
+                <p className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                  {error}
+                </p>
+              )}
 
             </form>
 

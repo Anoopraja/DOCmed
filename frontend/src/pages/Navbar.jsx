@@ -1,6 +1,5 @@
-
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const navItems = [
   { label: "Home", to: "/" },
@@ -9,16 +8,55 @@ const navItems = [
   { label: "Emergency", to: "/emergency" },
 ];
 
+// Read the logged-in user saved by the Login page
+const getStoredUser = () => {
+  try {
+    const raw = localStorage.getItem("user") || sessionStorage.getItem("user");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 const Navbar = ({ cartCount = 0 }) => {
+  const navigate = useNavigate();
+  const [user, setUser] = useState(getStoredUser);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const closeMenu = () => setMenuOpen(false);
 
+  // Keep navbar in sync after login/logout (same tab and other tabs)
+  useEffect(() => {
+    const sync = () => setUser(getStoredUser());
+    window.addEventListener("auth-change", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("auth-change", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    ["token", "user"].forEach((key) => {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    });
+    setUser(null);
+    closeMenu();
+    window.dispatchEvent(new Event("auth-change"));
+    navigate("/login");
+  };
+
+  const userId = user?.id ?? user?._id; // supports MySQL-style id and Mongo _id
+  const profilePath = user
+    ? user.role === "admin"
+      ? `/admin/profile/${userId}`
+      : `/user/profile/${userId}`
+    : "/login";
+
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#101713]/95 text-white backdrop-blur-xl">
-
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 md:px-10">
-
         {/* LOGO */}
         <Link
           to="/"
@@ -29,7 +67,6 @@ const Navbar = ({ cartCount = 0 }) => {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#b5f36d] text-[#152019] text-2xl font-bold">
             +
           </div>
-
           <span className="text-xl font-bold tracking-tight">
             DOC<span className="text-[#b5f36d]">med</span>
           </span>
@@ -47,7 +84,6 @@ const Navbar = ({ cartCount = 0 }) => {
               className="relative transition hover:text-[#b5f36d] group"
             >
               {item.label}
-
               <span className="absolute -bottom-2 left-0 h-0.5 w-0 rounded-full bg-[#b5f36d] transition-all group-hover:w-full" />
             </Link>
           ))}
@@ -55,7 +91,6 @@ const Navbar = ({ cartCount = 0 }) => {
 
         {/* RIGHT ACTIONS */}
         <div className="flex items-center gap-2 sm:gap-3">
-
           {/* FAVORITES */}
           <Link
             to="/wishlist"
@@ -72,7 +107,6 @@ const Navbar = ({ cartCount = 0 }) => {
             className="relative flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-gray-300 transition hover:bg-white/10 hover:text-[#b5f36d]"
           >
             <span className="text-xl">🛒</span>
-
             {cartCount > 0 && (
               <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange-400 px-1 text-[9px] font-bold text-black">
                 {cartCount}
@@ -80,21 +114,39 @@ const Navbar = ({ cartCount = 0 }) => {
             )}
           </Link>
 
-          {/* LOGIN */}
-          <Link
-            to="/login"
-            className="hidden rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-[#b5f36d] hover:text-[#b5f36d] sm:block"
-          >
-            Login
-          </Link>
-
-          {/* REGISTER */}
-          <Link
-            to="/register"
-            className="hidden rounded-full bg-[#b5f36d] px-5 py-2.5 text-sm font-semibold text-[#152019] transition hover:bg-orange-400 sm:block"
-          >
-            Register
-          </Link>
+          {/* DESKTOP AUTH */}
+          {user ? (
+            <div className="hidden items-center gap-3 sm:flex">
+              <Link
+                to={profilePath}
+                className="rounded-full border border-[#b5f36d]/30 px-5 py-2.5 text-sm font-semibold text-[#b5f36d] hover:bg-[#b5f36d]/10 transition"
+              >
+                My Profile
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded-full border border-red-500/30 bg-red-500/10 px-5 py-2.5 text-sm font-semibold text-red-400 hover:bg-red-500 hover:text-white transition"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <div className="hidden items-center gap-3 sm:flex">
+              <Link
+                to="/login"
+                className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-[#b5f36d] hover:text-[#b5f36d]"
+              >
+                Login
+              </Link>
+              <Link
+                to="/register"
+                className="rounded-full bg-[#b5f36d] px-5 py-2.5 text-sm font-semibold text-[#152019] transition hover:bg-orange-400"
+              >
+                Register
+              </Link>
+            </div>
+          )}
 
           {/* MOBILE MENU BUTTON */}
           <button
@@ -106,7 +158,6 @@ const Navbar = ({ cartCount = 0 }) => {
           >
             {menuOpen ? "✕" : "☰"}
           </button>
-
         </div>
       </div>
 
@@ -116,7 +167,6 @@ const Navbar = ({ cartCount = 0 }) => {
           className="border-t border-white/10 bg-[#101713] px-5 py-4 md:hidden"
           aria-label="Mobile navigation"
         >
-
           {navItems.map((item) => (
             <Link
               key={item.label}
@@ -130,27 +180,44 @@ const Navbar = ({ cartCount = 0 }) => {
 
           {/* MOBILE AUTH BUTTONS */}
           <div className="grid grid-cols-2 gap-3 pt-5">
-
-            <Link
-              to="/login"
-              onClick={closeMenu}
-              className="rounded-xl border border-white/20 py-3 text-center text-sm font-semibold hover:border-[#b5f36d] hover:text-[#b5f36d]"
-            >
-              Login
-            </Link>
-
-            <Link
-              to="/register"
-              onClick={closeMenu}
-              className="rounded-xl bg-[#b5f36d] py-3 text-center text-sm font-bold text-[#152019] hover:bg-orange-400"
-            >
-              Register
-            </Link>
-
+            {user ? (
+              <>
+                <Link
+                  to={profilePath}
+                  onClick={closeMenu}
+                  className="rounded-xl border border-[#b5f36d]/30 py-3 text-center text-sm font-semibold text-[#b5f36d]"
+                >
+                  My Profile
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="rounded-xl bg-red-500/10 py-3 text-sm font-bold text-red-400 hover:bg-red-500 hover:text-white transition"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  onClick={closeMenu}
+                  className="rounded-xl border border-white/20 py-3 text-center text-sm font-semibold hover:border-[#b5f36d] hover:text-[#b5f36d]"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={closeMenu}
+                  className="rounded-xl bg-[#b5f36d] py-3 text-center text-sm font-bold text-[#152019] hover:bg-orange-400"
+                >
+                  Register
+                </Link>
+              </>
+            )}
           </div>
         </nav>
       )}
-
     </header>
   );
 };
