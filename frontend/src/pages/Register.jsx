@@ -24,6 +24,7 @@ export default function Register() {
     username: "",
     email: "",
     password: "",
+    role: ""
   });
 
   const handleChange = (e) => {
@@ -47,6 +48,7 @@ export default function Register() {
         username: formData.username,
         gmail: formData.email, // email -> gmail (backend yahi naam maangta hai)
         password: formData.password,
+        role: formData.role
       });
 
       console.log(response.data);
@@ -237,7 +239,23 @@ export default function Register() {
                   </button>
                 </div>
               </div>
+              <div className="w-full min-w-0">
+                <label className="block text-sm font-medium mb-2 text-gray-300">
+                  Register As
+                </label>
 
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  required
+                  className="relative block w-full min-w-0 bg-[#101713] border border-white/10 rounded-xl py-3 px-3 sm:px-4 text-sm sm:text-base text-white outline-none focus:border-[#b5f36d] transition cursor-pointer"
+                >
+                  <option value="user">User</option>
+                  <option value="shopowner">Shop Owner</option>
+                  <option value="deliveryboy">Delivery Boy</option>
+                </select>
+              </div>
               {/* Error */}
               {error && (
                 <p className="text-red-400 text-sm bg-red-400/10 p-3 rounded-lg">
