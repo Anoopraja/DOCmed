@@ -43,7 +43,7 @@ const handleLogout = async () => {
   } finally {
     setUser(null);
     setMenuOpen(false);
-    navigate("/user/login");
+    navigate("/login");
   }
 };
 
