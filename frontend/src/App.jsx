@@ -7,6 +7,7 @@ import Cart from "./pages/Cart.jsx";
 import Register from "./pages/Register.jsx";
 import { Route, Routes } from "react-router-dom";
 import Doctor from "./pages/Doctor.jsx";
+import UserProfile from "./pages/user/UserProfile.jsx";
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/userprofile" element={<UserProfile />} />
         </Routes>
       </main>
       <Footer />

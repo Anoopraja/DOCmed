@@ -111,7 +111,7 @@ const handleLogout = async () => {
           {user ? (
             <div className="hidden items-center gap-3 sm:flex">
               <Link
-                to="/user/me"
+                to="/userprofile"
                 className="rounded-full border border-[#b5f36d]/30 px-5 py-2.5 text-sm font-semibold text-[#b5f36d] hover:bg-[#b5f36d]/10 transition"
               >
                 My Profile
@@ -176,7 +176,7 @@ const handleLogout = async () => {
             {user ? (
               <>
                 <Link
-                  to="/user/me"
+                  to="/userprofile"
                   onClick={closeMenu}
                   className="rounded-xl border border-[#b5f36d]/30 py-3 text-center text-sm font-semibold text-[#b5f36d]"
                 >
