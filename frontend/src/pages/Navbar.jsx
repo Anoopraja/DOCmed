@@ -1,5 +1,6 @@
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import api from "../../api/api.js";
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
 
 const navItems = [
   { label: "Home", to: "/" },
@@ -8,51 +9,43 @@ const navItems = [
   { label: "Emergency", to: "/emergency" },
 ];
 
-// Read the logged-in user saved by the Login page
-const getStoredUser = () => {
-  try {
-    const raw = localStorage.getItem("user") || sessionStorage.getItem("user");
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-};
+
+
+
 
 const Navbar = ({ cartCount = 0 }) => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(getStoredUser);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  const location = useLocation(); const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
 
-  // Keep navbar in sync after login/logout (same tab and other tabs)
+
   useEffect(() => {
-    const sync = () => setUser(getStoredUser());
-    window.addEventListener("auth-change", sync);
-    window.addEventListener("storage", sync);
-    return () => {
-      window.removeEventListener("auth-change", sync);
-      window.removeEventListener("storage", sync);
-    };
-  }, []);
+    const getCurrentUser = async () => {
+      try {
+        const { data } = await api.get("user/me")
+        setUser(data.user)
+      }
+      catch (userError) {
+        setUser(null);
+      }
+    }
+    getCurrentUser();
+  }, [location.pathname]);
 
-  const handleLogout = () => {
-    ["token", "user"].forEach((key) => {
-      localStorage.removeItem(key);
-      sessionStorage.removeItem(key);
-    });
+const handleLogout = async () => {
+  try {
+    await api.post("/user/logout");
+  } catch (error) {
+    console.error("Logout failed:", error);
+  } finally {
     setUser(null);
-    closeMenu();
-    window.dispatchEvent(new Event("auth-change"));
-    navigate("/login");
-  };
-
-  const userId = user?.id ?? user?._id; // supports MySQL-style id and Mongo _id
-  const profilePath = user
-    ? user.role === "admin"
-      ? `/admin/profile/${userId}`
-      : `/user/profile/${userId}`
-    : "/login";
+    setMenuOpen(false);
+    navigate("/user/login");
+  }
+};
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#101713]/95 text-white backdrop-blur-xl">
@@ -118,7 +111,7 @@ const Navbar = ({ cartCount = 0 }) => {
           {user ? (
             <div className="hidden items-center gap-3 sm:flex">
               <Link
-                to={profilePath}
+                to="/user/me"
                 className="rounded-full border border-[#b5f36d]/30 px-5 py-2.5 text-sm font-semibold text-[#b5f36d] hover:bg-[#b5f36d]/10 transition"
               >
                 My Profile
@@ -183,7 +176,7 @@ const Navbar = ({ cartCount = 0 }) => {
             {user ? (
               <>
                 <Link
-                  to={profilePath}
+                  to="/user/me"
                   onClick={closeMenu}
                   className="rounded-xl border border-[#b5f36d]/30 py-3 text-center text-sm font-semibold text-[#b5f36d]"
                 >
