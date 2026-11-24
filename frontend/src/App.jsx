@@ -7,8 +7,10 @@ import Cart from "./pages/Cart.jsx";
 import Register from "./pages/Register.jsx";
 import { Route, Routes } from "react-router-dom";
 import Doctor from "./pages/Doctor.jsx";
+import Emergency from "./pages/Emergency.jsx";
 import UserProfile from "./pages/user/UserProfile.jsx";
-
+import ShopowerProfile from "./pages/user/ShopownerProfile.jsx";
+// import AdminProfile from "./pages/user/AdminProfile.jsx";
 export default function App() {
   return (
     <div className="min-h-screen bg-[#111920] text-white">
@@ -22,6 +24,9 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/userprofile" element={<UserProfile />} />
+          <Route path="/shopowerprofile" element={<ShopowerProfile />} />
+          {/* <Route path="/adminprofile" element={<AdminProfile />} /> */}
+          <Route path="/emergency" element={<Emergency />} />
         </Routes>
       </main>
       <Footer />
