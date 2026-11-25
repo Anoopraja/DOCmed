@@ -6,8 +6,8 @@ export default function Footer() {
     { name: "Home", path: "/" },
     { name: "Medicines", path: "/medicines" },
     { name: "Doctors", path: "/doctors" },
-    { name: "Categories", path: "/categories" },
-    { name: "My Orders", path: "/orders" },
+    { name: "Emergency", path: "/emergency" },
+    // { name: "My Orders", path: "/orders" },
   ];
 
   const supportLinks = [

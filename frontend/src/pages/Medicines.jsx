@@ -1,16 +1,13 @@
 
-// import Products from './ProductCard.jsx';
-
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import api from "../../api/api.js";
 import Products from "./ProductCard.jsx";
+
 import {
   Search,
   SlidersHorizontal,
   Pill,
-  Heart,
   Activity,
-  Sparkles,
   X,
 } from "lucide-react";
 
@@ -23,114 +20,67 @@ const categories = [
   "Allergy",
 ];
 
-const medicines = [
-  {
-    id: 1,
-    name: "Paracetamol 500mg",
-    brand: "Dolo",
-    category: "Pain Relief",
-    price: 30,
-  },
-  {
-    id: 2,
-    name: "Vitamin C Tablets",
-    brand: "HealthVit",
-    category: "Vitamins",
-    price: 120,
-  },
-  {
-    id: 3,
-    name: "Cetirizine 10mg",
-    brand: "Cetzine",
-    category: "Allergy",
-    price: 45,
-  },
-  {
-    id: 4,
-    name: "Multivitamin Tablets",
-    brand: "HealthKart",
-    category: "Vitamins",
-    price: 199,
-  },
-  {
-    id: 5,
-    name: "First Aid Kit",
-    brand: "Dr. Morepen",
-    category: "Healthcare",
-    price: 250,
-  },
-  {
-    id: 6,
-    name: "Antiseptic Liquid",
-    brand: "Dettol",
-    category: "Healthcare",
-    price: 85,
-  },
-  {
-    id: 7,
-    name: "Pain Relief Gel",
-    brand: "Volini",
-    category: "Pain Relief",
-    price: 110,
-  },
-  {
-    id: 8,
-    name: "Hand Sanitizer",
-    brand: "Dettol",
-    category: "Personal Care",
-    price: 60,
-  },
-];
-
 function Medicine() {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All Medicines");
 
+  const [medicines, setMedicines] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Fetch Medicines
+  useEffect(() => {
+    const getAllMedicines = async () => {
+      try {
+        setLoading(true);
+
+        const response = await api.get("/product/allproducts");
+
+        setMedicines(response.data.data || []);
+      } catch (error) {
+        console.error("Error fetching medicines:", error);
+        setError("Unable to fetch medicines.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getAllMedicines();
+  }, []);
+
+  // Search and Category Filter
   const filteredMedicines = medicines.filter((medicine) => {
     const matchesSearch =
-      medicine.name.toLowerCase().includes(search.toLowerCase()) ||
-      medicine.brand.toLowerCase().includes(search.toLowerCase());
+      medicine.name?.toLowerCase().includes(search.toLowerCase()) ||
+      medicine.manufacturerName?.toLowerCase().includes(search.toLowerCase()) ||
+      medicine.shortComposition1?.toLowerCase().includes(search.toLowerCase()) ||
+      medicine.shortComposition2?.toLowerCase().includes(search.toLowerCase());
 
+    // Your current database has medicine type, not category.
     const matchesCategory =
       activeCategory === "All Medicines" ||
-      medicine.category === activeCategory;
+      (activeCategory === "Healthcare" && true);
 
     return matchesSearch && matchesCategory;
   });
 
   return (
-    <div className="min-h-screen bg-[#090d0b] text-white px-4 sm:px-8 lg:px-16 py-10">
+    <div className="min-h-screen bg-[#090d0b] px-4 py-10 text-white sm:px-8 lg:px-16">
 
-      {/* Header */}
-      <div className="max-w-7xl mx-auto">
-
-        {/* <div className="mb-9">
-          {/* <p className="text-green-500 text-sm font-semibold mb-2">
-            DOCMED / MEDICINES
-          </p> */}
-
-          {/* <h1 className="text-3xl sm:text-4xl font-bold"> */}
-            {/* Find Your <span className="text-green-500">Medicines</span> */}
-          {/* </h1> */}
-
-          {/* <p className="text-gray-400 mt-3 max-w-xl">
-            Explore genuine healthcare products and medicines.
-            Your health, our priority.
-          </p> */}
-        {/* </div>  */}
+      <div className="mx-auto max-w-7xl">
 
         {/* Search */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-8">
+        <div className="mb-8 flex flex-col gap-3 sm:flex-row">
 
-          <div className="flex-1 flex items-center gap-3 bg-[#151d18] border border-[#29372d] rounded-xl px-4 py-3 focus-within:border-green-500 transition">
+          <div className="flex flex-1 items-center gap-3 rounded-xl border border-[#29372d] bg-[#151d18] px-4 py-3 transition focus-within:border-green-500">
             <Search className="text-green-500" size={21} />
 
             <input
               type="text"
-              placeholder="Search medicines, brands..."
+              placeholder="Search medicines, manufacturers..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-transparent outline-none text-white placeholder:text-gray-500"
+              className="w-full bg-transparent text-white outline-none placeholder:text-gray-500"
             />
 
             {search && (
@@ -140,72 +90,48 @@ function Medicine() {
             )}
           </div>
 
-          <button className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#151d18] border border-[#29372d] text-gray-300 hover:border-orange-500 transition">
+          <button className="flex items-center justify-center gap-2 rounded-xl border border-[#29372d] bg-[#151d18] px-6 py-3 text-gray-300 transition hover:border-orange-500">
             <SlidersHorizontal size={18} />
             Filters
           </button>
+
         </div>
 
-        {/* Category Filters */}
-        <div className="mb-10">
-          <div className="flex items-center gap-2 mb-4">
+        {/* Categories */}
+        {/* <div className="mb-10">
+
+          <div className="mb-4 flex items-center gap-2">
             <Pill size={19} className="text-orange-500" />
-            <h2 className="font-semibold text-lg">Categories</h2>
+            <h2 className="text-lg font-semibold">Categories</h2>
           </div>
 
-          <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide">
+          <div className="scrollbar-hide flex gap-3 overflow-x-auto pb-3">
             {categories.map((category) => (
               <button
                 key={category}
                 onClick={() => setActiveCategory(category)}
-                className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-medium transition ${
+                className={`whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-medium transition ${
                   activeCategory === category
                     ? "bg-green-500 text-black"
-                    : "bg-[#151d18] border border-[#29372d] text-gray-400 hover:border-green-500 hover:text-white"
+                    : "border border-[#29372d] bg-[#151d18] text-gray-400 hover:border-green-500 hover:text-white"
                 }`}
               >
                 {category}
               </button>
             ))}
           </div>
-        </div>
 
-        {/* Featured Banner */}
-        {/* <div className="relative overflow-hidden bg-[#17251b] border border-[#293b2e] rounded-2xl p-6 sm:p-8 mb-10">
-          <div className="relative z-10 max-w-lg">
-            <span className="text-orange-500 text-xs font-bold uppercase tracking-widest">
-              Your health matters
-            </span>
-
-            <h2 className="text-2xl sm:text-3xl font-bold mt-3">
-              Healthcare made <span className="text-green-500">simple.</span>
-            </h2>
-
-            <p className="text-gray-400 mt-3 text-sm">
-              Find essential medicines and healthcare products
-              all in one place.
-            </p>
-          </div>
-
-          <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-10">
-            <Heart size={150} className="text-green-400" />
-          </div>
-
-          <Sparkles
-            size={25}
-            className="absolute right-10 top-8 text-orange-500"
-          />
         </div> */}
 
         {/* Products Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        {/* <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold">
+            <h2 className="text-xl font-bold sm:text-2xl">
               Available Medicines
             </h2>
 
-            <p className="text-gray-500 text-sm mt-1">
-              Showing {filteredMedicines.length} products
+            <p className="mt-1 text-sm text-gray-500">
+              Showing {filteredMedicines.length} medicines
             </p>
           </div>
 
@@ -213,45 +139,68 @@ function Medicine() {
             <Activity size={17} className="text-green-500" />
             Healthcare Store
           </div>
-        </div>
+
+        </div> */}
+
+        {/* Loading */}
+        {loading && (
+          <p className="py-20 text-center text-gray-400">
+            Loading medicines...
+          </p>
+        )}
+
+        {/* Error */}
+        {!loading && error && (
+          <p className="py-20 text-center text-red-400">
+            {error}
+          </p>
+        )}
 
         {/* Product Grid */}
-        {filteredMedicines.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {filteredMedicines.map((medicine) => (
-              <Products
-                key={medicine.id}
-                product={medicine}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-20 bg-[#121a15] rounded-2xl border border-[#29372d]">
-            <Search size={40} className="text-gray-600 mx-auto mb-4" />
+        {!loading && !error && (
+          filteredMedicines.length > 0 ? (
 
-            <h3 className="text-xl font-semibold">
-              No medicines found
-            </h3>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filteredMedicines.map((medicine) => (
+                <Products
+                  key={medicine._id}
+                  product={medicine}
+                />
+              ))}
+            </div>
 
-            <p className="text-gray-500 text-sm mt-2">
-              Try another medicine name or category.
-            </p>
+          ) : (
 
-            <button
-              onClick={() => {
-                setSearch("");
-                setActiveCategory("All Medicines");
-              }}
-              className="mt-5 bg-orange-500 hover:bg-orange-600 text-black px-5 py-2.5 rounded-lg font-semibold transition"
-            >
-              Clear Search
-            </button>
-          </div>
+            <div className="rounded-2xl border border-[#29372d] bg-[#121a15] py-20 text-center">
+
+              <Search size={40} className="mx-auto mb-4 text-gray-600" />
+
+              <h3 className="text-xl font-semibold">
+                No medicines found
+              </h3>
+
+              <p className="mt-2 text-sm text-gray-500">
+                Try another medicine name.
+              </p>
+
+              <button
+                onClick={() => {
+                  setSearch("");
+                  setActiveCategory("All Medicines");
+                }}
+                className="mt-5 rounded-lg bg-orange-500 px-5 py-2.5 font-semibold text-black transition hover:bg-orange-600"
+              >
+                Clear Search
+              </button>
+
+            </div>
+
+          )
         )}
+
       </div>
     </div>
   );
 }
 
 export default Medicine;
-

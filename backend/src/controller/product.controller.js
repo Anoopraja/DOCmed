@@ -1,53 +1,54 @@
 import Product from "../model/product.model.js";
 
+
+
 const getAllProduct = async (req, res) => {
     try {
-        const products = await Product.find({ isActive: true });
+        const medicines = await Product.find({});
+
+        // console.log("Database:", Product.db.name);
+        // console.log("Collection:", Product.collection.name);
+        // console.log("Total medicines:", medicines.length);
 
         return res.status(200).json({
             success: true,
-            message: "Products fetched successfully",
-            count: products.length,
-            data: products
+            message: "Medicines fetched successfully",
+            count: medicines.length,
+            data: medicines
         });
 
     } catch (error) {
+        console.error("Get All Medicine Error:", error);
+
         return res.status(500).json({
             success: false,
             message: error.message
         });
     }
 };
+
+
+
 const addProduct = async (req, res) => {
     try {
         const {
+            id,
             name,
-            brand,
-            genericName,
-            description,
-            category,
-            composition,
-            manufacturer,
-            medicineType,
-            productForm,
-            packSize,
-            mrp,
-            sellingPrice,
-            stock,
-            requiresPrescription,
-            expiryDate,
-            image,
+            price,
+            isDiscontinued,
+            manufacturerName,
+            type,
+            packSizeLabel,
+            shortComposition1,
+            shortComposition2,
         } = req.body;
 
         // Required fields validation
         if (
+            !id ||
             !name ||
-            !category ||
-            !composition ||
-            !productForm ||
-            mrp === undefined ||
-            sellingPrice === undefined ||
-            !expiryDate
+            price === undefined ||
+            !manufacturerName
         ) {
             return res.status(400).json({
                 success: false,
@@ -55,50 +56,62 @@ const addProduct = async (req, res) => {
             });
         }
 
-        // Validate prices
-        if (Number(mrp) < 0 || Number(sellingPrice) < 0) {
+        // Validate price
+        const medicinePrice = Number(price);
+
+        if (!Number.isFinite(medicinePrice) || medicinePrice < 0) {
             return res.status(400).json({
                 success: false,
-                message: "Price cannot be negative",
+                message: "Please provide a valid medicine price",
             });
         }
 
-        if (Number(sellingPrice) > Number(mrp)) {
+        // Validate medicine type
+        const allowedTypes = [
+            "allopathy",
+            "ayurvedic",
+            "homeopathy",
+            "other",
+        ];
+
+        if (type && !allowedTypes.includes(type)) {
             return res.status(400).json({
                 success: false,
-                message: "Selling price cannot be greater than MRP",
+                message: "Invalid medicine type",
             });
         }
 
-        // Create product
-        const product = await Product.create({
+        // Check duplicate medicine ID
+        const existingMedicine = await Product.findOne({ id });
+
+        if (existingMedicine) {
+            return res.status(409).json({
+                success: false,
+                message: "Medicine already exists",
+            });
+        }
+
+        // Create medicine
+        const medicine = await Product.create({
+            id,
             name,
-            brand,
-            genericName,
-            description,
-            category,
-            composition,
-            manufacturer,
-            medicineType,
-            productForm,
-            packSize,
-            mrp,
-            sellingPrice,
-            stock,
-            requiresPrescription,
-            expiryDate,
-            image: image || null,
-            shopowner: req.user._id,
+            price: medicinePrice,
+            isDiscontinued: isDiscontinued ?? false,
+            manufacturerName,
+            type: type || "allopathy",
+            packSizeLabel,
+            shortComposition1,
+            shortComposition2,
         });
 
         return res.status(201).json({
             success: true,
-            message: "Product added successfully",
-            data: product,
+            message: "Medicine added successfully",
+            data: medicine,
         });
 
     } catch (error) {
-        console.error("Add Product Error:", error);
+        console.error("Add Medicine Error:", error);
 
         return res.status(500).json({
             success: false,
@@ -106,5 +119,8 @@ const addProduct = async (req, res) => {
         });
     }
 };
+
+
+
 
 export { getAllProduct, addProduct };
