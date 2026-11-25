@@ -20,6 +20,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -44,14 +45,16 @@ export default function Register() {
     try {
       setLoading(true);
 
-      const response = await api.post("/user/register", {
+      const registrationPath =
+        formData.role === "shopowner" ? "/shopowner/register" : "/user/register";
+
+      await api.post(registrationPath, {
         username: formData.username,
         gmail: formData.email, // email -> gmail (backend yahi naam maangta hai)
         password: formData.password,
         role: formData.role
       });
 
-      console.log(response.data);
       navigate("/login");
     } catch (err) {
       setError(
@@ -251,9 +254,11 @@ export default function Register() {
                   required
                   className="relative block w-full min-w-0 bg-[#101713] border border-white/10 rounded-xl py-3 px-3 sm:px-4 text-sm sm:text-base text-white outline-none focus:border-[#b5f36d] transition cursor-pointer"
                 >
+                  <option value="" disabled>
+                    Select an account type
+                  </option>
                   <option value="user">User</option>
                   <option value="shopowner">Shop Owner</option>
-                  <option value="deliveryboy">Delivery Boy</option>
                 </select>
               </div>
               {/* Error */}

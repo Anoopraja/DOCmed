@@ -104,20 +104,20 @@ function Medicine() {
       {/* Header */}
       <div className="max-w-7xl mx-auto">
 
-        <div className="mb-9">
-          <p className="text-green-500 text-sm font-semibold mb-2">
+        {/* <div className="mb-9">
+          {/* <p className="text-green-500 text-sm font-semibold mb-2">
             DOCMED / MEDICINES
-          </p>
+          </p> */}
 
-          <h1 className="text-3xl sm:text-4xl font-bold">
-            Find Your <span className="text-green-500">Medicines</span>
-          </h1>
+          {/* <h1 className="text-3xl sm:text-4xl font-bold"> */}
+            {/* Find Your <span className="text-green-500">Medicines</span> */}
+          {/* </h1> */}
 
-          <p className="text-gray-400 mt-3 max-w-xl">
+          {/* <p className="text-gray-400 mt-3 max-w-xl">
             Explore genuine healthcare products and medicines.
             Your health, our priority.
-          </p>
-        </div>
+          </p> */}
+        {/* </div>  */}
 
         {/* Search */}
         <div className="flex flex-col sm:flex-row gap-3 mb-8">
@@ -171,7 +171,7 @@ function Medicine() {
         </div>
 
         {/* Featured Banner */}
-        <div className="relative overflow-hidden bg-[#17251b] border border-[#293b2e] rounded-2xl p-6 sm:p-8 mb-10">
+        {/* <div className="relative overflow-hidden bg-[#17251b] border border-[#293b2e] rounded-2xl p-6 sm:p-8 mb-10">
           <div className="relative z-10 max-w-lg">
             <span className="text-orange-500 text-xs font-bold uppercase tracking-widest">
               Your health matters
@@ -195,7 +195,7 @@ function Medicine() {
             size={25}
             className="absolute right-10 top-8 text-orange-500"
           />
-        </div>
+        </div> */}
 
         {/* Products Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-5">

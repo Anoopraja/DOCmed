@@ -7,7 +7,6 @@ import {
   Lock,
   Eye,
   EyeOff,
-  ArrowRight,
   ShieldCheck,
   Stethoscope,
   ShoppingBag,
@@ -22,6 +21,7 @@ export default function Login() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    role: "user",
     remember: false,
 
   });
@@ -41,7 +41,10 @@ export default function Login() {
     try {
       setLoading(true);
 
-      const response = await api.post("/user/login", {
+      const loginPath =
+        formData.role === "shopowner" ? "/shopowner/login" : "/user/login";
+
+      const response = await api.post(loginPath, {
         gmail: formData.email,   // map email -> gmail
         password: formData.password,
       });
@@ -54,7 +57,7 @@ export default function Login() {
         storage.setItem("token", response.data.token);
       }
 
-      navigate("/"); // go to home after login
+      navigate(formData.role === "shopowner" ? "/shopowerprofile" : "/userprofile");
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong. Try again.");
     } finally {
@@ -190,6 +193,21 @@ export default function Login() {
                     className="w-full bg-[#101713] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:text-gray-600 outline-none focus:border-[#b5f36d] transition"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-300">
+                  Sign In As
+                </label>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className="w-full bg-[#101713] border border-white/10 rounded-xl py-4 px-4 text-white outline-none focus:border-[#b5f36d] transition cursor-pointer"
+                >
+                  <option value="user">User</option>
+                  <option value="shopowner">Shop Owner</option>
+                </select>
               </div>
 
               {/* Password */}

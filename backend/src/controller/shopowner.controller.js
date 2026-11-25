@@ -152,8 +152,29 @@ const shopownerLogin = async (req, res) => {
     }
 };
 
+const shopownerLogout = (req, res) => {
+    try {
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: req.secure || req.headers["x-forwarded-proto"] === "https",
+            sameSite: req.secure || req.headers["x-forwarded-proto"] === "https" ? "none" : "lax",      
+        });
 
+        return res.status(200).json({
+            success: true,
+            message: "Shopowner logged out successfully"
+        });
+    } catch (error) {
+        console.error("Shopowner Logout Error:", error);
 
-
-
-export { shopownerRegister, shopownerLogin }
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
+export {
+    shopownerRegister,
+    shopownerLogin,
+    shopownerLogout
+}

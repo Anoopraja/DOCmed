@@ -16,28 +16,39 @@ const navItems = [
 const Navbar = ({ cartCount = 0 }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   const location = useLocation(); const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
 
 
   useEffect(() => {
+    let active = true;
+
     const getCurrentUser = async () => {
       try {
-        const { data } = await api.get("user/me")
-        setUser(data.user)
+        const { data } = await api.get("/user/me");
+        if (active) setUser(data.user);
+      } catch {
+        try {
+          const { data } = await api.get("/shopowner/me");
+          if (active) setUser(data.user);
+        } catch {
+          if (active) setUser(null);
+        }
       }
-      catch (userError) {
-        setUser(null);
-      }
-    }
+
+    };
+
     getCurrentUser();
+    return () => {
+      active = false;
+    };
   }, [location.pathname]);
 
 const handleLogout = async () => {
   try {
-    await api.post("/user/logout");
+    const logoutPath = user?.role === "shopowner" ? "/shopowner/logout" : "/user/logout";
+    await api.post(logoutPath);
   } catch (error) {
     console.error("Logout failed:", error);
   } finally {
@@ -111,7 +122,7 @@ const handleLogout = async () => {
           {user ? (
             <div className="hidden items-center gap-3 sm:flex">
               <Link
-                to="/userprofile"
+                to={user.role === "shopowner" ? "/shopowerprofile" : "/userprofile"}
                 className="rounded-full border border-[#b5f36d]/30 px-5 py-2.5 text-sm font-semibold text-[#b5f36d] hover:bg-[#b5f36d]/10 transition"
               >
                 My Profile
@@ -176,7 +187,7 @@ const handleLogout = async () => {
             {user ? (
               <>
                 <Link
-                  to="/userprofile"
+                  to={user.role === "shopowner" ? "/shopowerprofile" : "/userprofile"}
                   onClick={closeMenu}
                   className="rounded-xl border border-[#b5f36d]/30 py-3 text-center text-sm font-semibold text-[#b5f36d]"
                 >

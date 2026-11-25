@@ -18,38 +18,10 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="mt-16 bg-[#101713] text-white">
+    <footer className=" bg-[#101713] text-white">
 
       {/* TOP CTA */}
-      <div className="max-w-7xl mx-auto px-5 lg:px-8 ">
-        <div className="relative overflow-hidden rounded-3xl bg-[#b5f36d] p-7 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6">
-
-          <div className="relative z-10">
-            <p className="text-xs font-bold uppercase tracking-widest text-[#344b24]">
-              Your health matters
-            </p>
-
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#172316] mt-2">
-              Healthcare, made easier.
-            </h2>
-
-            <p className="text-sm text-[#344b24] mt-2">
-              Medicines and trusted doctors, all in one place.
-            </p>
-          </div>
-
-          <Link
-            to="/medicines"
-            className="relative z-10 flex items-center gap-2 bg-[#172316] text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-[#273a29] transition"
-          >
-            Explore DOCmed
-          </Link>
-
-          <div className="absolute -right-5 -bottom-12 text-[#172316]/10 text-[180px] font-bold">
-            +
-          </div>
-        </div>
-      </div>
+      
 
       {/* MAIN FOOTER */}
       <div className="max-w-7xl mx-auto px-5 lg:px-8 py-14">
