@@ -233,77 +233,144 @@ const getCurrentUser = async (req, res) => {
 // 5. UPDATE USER PROFILE
 // =====================================
 
+// const updateProfile = async (req, res) => {
+//   try {
+//     // Auth middleware must attach the logged-in user
+//     const userId = req.user._id;
+
+//     // Only allow these fields to be updated
+//     const allowedFields = [
+//       "username",
+//       "phone",
+//       "profileImage",
+//       "addresses"
+//     ];
+
+//     const updateData = {};
+
+//     for (const field of allowedFields) {
+//       if (req.body[field] !== undefined) {
+//         updateData[field] = req.body[field];
+//       }
+//     }
+
+//     if (updateData.username !== undefined) {
+//       updateData.username = updateData.username.trim();
+
+//       if (!updateData.username) {
+//         return res.status(400).json({
+//           success: false,
+//           message: "Username cannot be empty",
+//         });
+//       }
+//     }
+
+//     if (updateData.phone !== undefined) {
+//       updateData.phone = updateData.phone.trim();
+
+//       if (!updateData.phone) {
+//         return res.status(400).json({
+//           success: false,
+//           message: "Phone cannot be empty",
+//         });
+//       }
+
+//       const existingPhone = await User.findOne({
+//         phone: updateData.phone,
+//         _id: { $ne: userId },
+//       });
+
+//       if (existingPhone) {
+//         return res.status(409).json({
+//           success: false,
+//           message: "Phone number already registered",
+//         });
+//       }
+//     }
+
+//     if (Object.keys(updateData).length === 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "No valid profile fields provided",
+//       });
+//     }
+
+//     const user = await User.findByIdAndUpdate(
+//       userId,
+//       { $set: updateData },
+//       {
+//         new: true,
+//         runValidators: true,
+//       }
+//     ).select("-password");
+
+//     if (!user) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "User not found",
+//       });
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Profile updated successfully",
+//       data: user,
+//     });
+
+//   } catch (error) {
+//     console.error("UPDATE PROFILE ERROR:", error);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
 const updateProfile = async (req, res) => {
   try {
-    // Auth middleware must attach the logged-in user
-    const userId = req.user._id;
+    const { id } = req.params;
 
-    // Only allow these fields to be updated
-    const allowedFields = [
-      "username",
-      "phone",
-      "profileImage",
-    ];
+    const { username, gmail, phone, profileImage } = req.body;
 
+    // Allowed fields only
     const updateData = {};
 
-    for (const field of allowedFields) {
-      if (req.body[field] !== undefined) {
-        updateData[field] = req.body[field];
-      }
+    if (username !== undefined) {
+      updateData.username = username;
     }
 
-    if (updateData.username !== undefined) {
-      updateData.username = updateData.username.trim();
-
-      if (!updateData.username) {
-        return res.status(400).json({
-          success: false,
-          message: "Username cannot be empty",
-        });
-      }
+    if (gmail !== undefined) {
+      updateData.gmail = gmail;
     }
 
-    if (updateData.phone !== undefined) {
-      updateData.phone = updateData.phone.trim();
-
-      if (!updateData.phone) {
-        return res.status(400).json({
-          success: false,
-          message: "Phone cannot be empty",
-        });
-      }
-
-      const existingPhone = await User.findOne({
-        phone: updateData.phone,
-        _id: { $ne: userId },
-      });
-
-      if (existingPhone) {
-        return res.status(409).json({
-          success: false,
-          message: "Phone number already registered",
-        });
-      }
+    if (phone !== undefined) {
+      updateData.phone = phone;
     }
+
+    if (profileImage !== undefined) {
+      updateData.profileImage = profileImage;
+    }
+    if (addresses !== undefined) {
+      updateData.addresses = addresses;
+      }
 
     if (Object.keys(updateData).length === 0) {
       return res.status(400).json({
         success: false,
-        message: "No valid profile fields provided",
+        message: "No fields provided for update",
       });
     }
 
-    const user = await User.findByIdAndUpdate(
-      userId,
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
       { $set: updateData },
       {
         new: true,
         runValidators: true,
       }
-    ).select("-password");
+    );
 
-    if (!user) {
+    if (!updatedUser) {
       return res.status(404).json({
         success: false,
         message: "User not found",
@@ -313,19 +380,27 @@ const updateProfile = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Profile updated successfully",
-      data: user,
+      data: updatedUser,
     });
 
   } catch (error) {
-    console.error("UPDATE PROFILE ERROR:", error);
+    console.error("Update Profile Error:", error);
+
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Email or phone number already exists",
+      });
+    }
 
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Internal Server Error",
     });
   }
 };
 
+export default updateProfile;
 
 // =====================================
 // 6. USER LOGOUT
