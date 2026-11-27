@@ -161,7 +161,7 @@ const Navbar = () => {
           className="flex shrink-0 items-center gap-2"
           onClick={closeMenu}
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#b5f36d] text-2xl font-bold text-[#152019]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f9faf8] text-2xl font-bold text-[#152019]">
             +
           </div>
 
