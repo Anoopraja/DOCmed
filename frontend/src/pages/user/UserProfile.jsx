@@ -15,6 +15,7 @@ import {
   LoaderCircle,
   AlertCircle,
   CalendarDays,
+  Plus,
   Pencil,
   X,
   Save,
@@ -33,12 +34,25 @@ const initialFormData = {
 
 const Profile = () => {
   const navigate = useNavigate();
-
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
+const [addresses, setAddresses] = useState([]);
+// const [saveAdress, setSaveAddress] = useState([])
+const [showAddressModal, setShowAddressModal] = useState(false);
+const [editingAddress, setEditingAddress] = useState(null);
+const [addressLoading, setAddressLoading] = useState(false);
+const [addressForm, setAddressForm] = useState({
+  fullName: "",
+  phone: "",
+  addressLine: "",
+  city: "",
+  state: "",
+  pincode: "",
+  landmark: "",
+  addressType: "Home",
+});
   const [formData, setFormData] = useState(initialFormData);
   const [isEditing, setIsEditing] = useState(false);
   const [updating, setUpdating] = useState(false);
@@ -54,6 +68,39 @@ const Profile = () => {
     });
   };
 
+  const openAddAddress = () => {
+  setEditingAddress(null);
+
+  setAddressForm({
+    fullName: "",
+    phone: "",
+    addressLine: "",
+    city: "",
+    state: "",
+    pincode: "",
+    landmark: "",
+    addressType: "Home",
+  });
+
+  setShowAddressModal(true);
+};
+
+const openEditAddress = (address) => {
+  setEditingAddress(address);
+
+  setAddressForm({
+    fullName: address.fullName || "",
+    phone: address.phone || "",
+    addressLine: address.addressLine || "",
+    city: address.city || "",
+    state: address.state || "",
+    pincode: address.pincode || "",
+    landmark: address.landmark || "",
+    addressType: address.addressType || "Home",
+  });
+
+  setShowAddressModal(true);
+};
   // Fetch logged-in user profile
   const getProfile = async () => {
     try {
@@ -555,6 +602,297 @@ const Profile = () => {
 
         {/* ADDRESS SECTION */}
        
+<section className="mt-10">
+
+  {/* Header */}
+  <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h2 className="text-xl font-bold text-white">
+        My Addresses
+      </h2>
+      <p className="mt-1 text-sm text-gray-400">
+        Manage your saved delivery addresses.
+      </p>
+    </div>
+
+    <button
+      onClick={openAddAddress}
+      className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#b5f36d] px-5 py-3 text-sm font-bold text-[#152019] transition hover:bg-[#a5e45c]"
+    >
+      <Plus size={18} />
+      Add Address
+    </button>
+  </div>
+
+  {/* Address List */}
+  {addresses.length === 0 ? (
+    <div className="rounded-2xl border border-dashed border-white/15 bg-[#18231c] px-5 py-12 text-center">
+
+      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#b5f36d]/10 text-[#b5f36d]">
+        <MapPin size={26} />
+      </div>
+
+      <h3 className="font-semibold text-white">
+        No saved addresses
+      </h3>
+
+      <p className="mt-2 text-sm text-gray-400">
+        Add your delivery address to make checkout easier.
+      </p>
+
+      <button
+        onClick={openAddAddress}
+        className="mt-5 rounded-xl bg-[#b5f36d] px-5 py-3 text-sm font-bold text-[#152019]"
+      >
+        Add Your First Address
+      </button>
+    </div>
+  ) : (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+      {addresses.map((address) => (
+        <article
+          key={address._id}
+          className="rounded-2xl border border-white/10 bg-[#18231c] p-5 transition hover:border-[#b5f36d]/40"
+        >
+
+          <div className="flex items-start justify-between gap-3">
+
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl bg-[#b5f36d]/10 p-3 text-[#b5f36d]">
+                <MapPin size={21} />
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-white">
+                  {address.addressType || "Home"}
+                </h3>
+                <p className="text-xs text-gray-400">
+                  {address.fullName}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => openEditAddress(address)}
+                className="rounded-lg border border-white/10 p-2 text-gray-300 transition hover:border-[#b5f36d] hover:text-[#b5f36d]"
+                title="Edit address"
+              >
+                <Pencil size={16} />
+              </button>
+
+              <button
+                onClick={() => deleteAddress(address._id)}
+                className="rounded-lg border border-white/10 p-2 text-gray-300 transition hover:border-red-500 hover:text-red-400"
+                title="Delete address"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+
+          </div>
+
+          <div className="mt-5 space-y-2 text-sm text-gray-300">
+            <p>{address.addressLine}</p>
+
+            <p>
+              {address.city}, {address.state} - {address.pincode}
+            </p>
+
+            {address.landmark && (
+              <p className="text-gray-400">
+                Landmark: {address.landmark}
+              </p>
+            )}
+
+            <p className="pt-2 text-gray-400">
+              Phone: {address.phone}
+            </p>
+          </div>
+
+        </article>
+      ))}
+
+    </div>
+  )}
+</section>
+
+{/* Floating Modal */}
+{showAddressModal && (
+  <div
+    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+    onClick={() => setShowAddressModal(false)}
+  >
+
+    <div
+      className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-white/10 bg-[#18231c] p-6 shadow-2xl"
+      onClick={(e) => e.stopPropagation()}
+    >
+
+      {/* Modal Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-white">
+            {editingAddress ? "Edit Address" : "Add New Address"}
+          </h2>
+
+          <p className="mt-1 text-sm text-gray-400">
+            Enter your delivery details.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowAddressModal(false)}
+          className="rounded-lg border border-white/10 p-2 text-gray-400 transition hover:text-white"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      {/* Form */}
+      <form onSubmit={saveAddress} className="space-y-4">
+
+        {/* Address Type */}
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-300">
+            Address Type
+          </label>
+
+          <div className="grid grid-cols-2 gap-3">
+            {["Home", "Work"].map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() =>
+                  setAddressForm((prev) => ({
+                    ...prev,
+                    addressType: type,
+                  }))
+                }
+                className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${
+                  addressForm.addressType === type
+                    ? "border-[#b5f36d] bg-[#b5f36d]/10 text-[#b5f36d]"
+                    : "border-white/10 text-gray-400 hover:border-white/30"
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Text Fields */}
+        {[
+          {
+            name: "fullName",
+            label: "Full Name",
+            placeholder: "Enter full name",
+          },
+          {
+            name: "phone",
+            label: "Phone Number",
+            placeholder: "Enter phone number",
+          },
+          {
+            name: "addressLine",
+            label: "House No. / Street / Area",
+            placeholder: "Enter complete address",
+          },
+          {
+            name: "landmark",
+            label: "Landmark (Optional)",
+            placeholder: "Nearby landmark",
+          },
+        ].map((field) => (
+          <div key={field.name}>
+            <label className="mb-2 block text-sm font-medium text-gray-300">
+              {field.label}
+            </label>
+
+            <input
+              type="text"
+              name={field.name}
+              value={addressForm[field.name]}
+              onChange={handleAddressChange}
+              placeholder={field.placeholder}
+              required={field.name !== "landmark"}
+              className="w-full rounded-xl border border-white/10 bg-[#101713] px-4 py-3 text-sm text-white outline-none placeholder:text-gray-500 focus:border-[#b5f36d]"
+            />
+          </div>
+        ))}
+
+        {/* City and State */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {["city", "state"].map((field) => (
+            <div key={field}>
+              <label className="mb-2 block text-sm font-medium capitalize text-gray-300">
+                {field}
+              </label>
+
+              <input
+                type="text"
+                name={field}
+                value={addressForm[field]}
+                onChange={handleAddressChange}
+                placeholder={`Enter ${field}`}
+                required
+                className="w-full rounded-xl border border-white/10 bg-[#101713] px-4 py-3 text-sm text-white outline-none placeholder:text-gray-500 focus:border-[#b5f36d]"
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Pincode */}
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-300">
+            Pincode
+          </label>
+
+          <input
+            type="text"
+            name="pincode"
+            value={addressForm.pincode}
+            onChange={handleAddressChange}
+            placeholder="Enter 6-digit pincode"
+            maxLength={6}
+            pattern="[0-9]{6}"
+            required
+            className="w-full rounded-xl border border-white/10 bg-[#101713] px-4 py-3 text-sm text-white outline-none placeholder:text-gray-500 focus:border-[#b5f36d]"
+          />
+        </div>
+
+        {/* Footer Buttons */}
+        <div className="flex flex-col-reverse gap-3 border-t border-white/10 pt-5 sm:flex-row sm:justify-end">
+
+          <button
+            type="button"
+            onClick={() => setShowAddressModal(false)}
+            className="rounded-xl border border-white/10 px-5 py-3 text-sm font-semibold text-gray-300 transition hover:bg-white/5"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            disabled={addressLoading}
+            className="rounded-xl bg-[#b5f36d] px-6 py-3 text-sm font-bold text-[#152019] transition hover:bg-[#a5e45c] disabled:opacity-50"
+          >
+            {addressLoading
+              ? "Saving..."
+              : editingAddress
+                ? "Update Address"
+                : "Save Address"}
+          </button>
+
+        </div>
+
+      </form>
+    </div>
+  </div>
+)}
+
 
         {/* QUICK LINKS */}
         <section className="mt-10">
