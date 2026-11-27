@@ -358,7 +358,7 @@ const openEditAddress = (address) => {
 
                   <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#b5f36d]/20 bg-[#b5f36d]/10 px-3 py-1 text-xs font-semibold text-[#b5f36d]">
                     <ShieldCheck size={14} />
-                    Buyer Account
+                    user Account
                   </span>
                 </div>
               </div>

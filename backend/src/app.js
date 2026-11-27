@@ -5,6 +5,7 @@ import adminRoute from "./route/admin.route.js"
 import shopownerRoute from "./route/shopwner.route.js"
 import productRoute from "./route/product.route.js"
 import orderRoute from "./route/order.route.js"
+import cartRoute from "./route/cart.route.js"
 import cors from "cors";
 
 const app = express()
@@ -25,6 +26,7 @@ app.use("/admin", adminRoute)
 app.use("/shopowner", shopownerRoute)
 app.use("/product", productRoute)
 app.use("/order", orderRoute)
+app.use("/cart", cartRoute)
 
 
 

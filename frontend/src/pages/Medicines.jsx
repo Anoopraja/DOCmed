@@ -48,6 +48,7 @@ function Medicine() {
     getAllMedicines();
   }, []);
 
+
   // Search and Category Filter
   const filteredMedicines = medicines.filter((medicine) => {
     const matchesSearch =

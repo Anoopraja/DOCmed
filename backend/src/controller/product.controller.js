@@ -1,4 +1,5 @@
 import Product from "../model/product.model.js";
+import authMiddleware, { requireRole } from "../middleware/auth.middleware.js"
 
 
 
