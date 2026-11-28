@@ -342,6 +342,22 @@ function DoctorRow({ doc }) {
   );
 }
 
+const Product = async (req, res) => {
+  try {
+    const products = await api.get("/product/allproducts");
+
+    return res.status(200).json({
+      success: true,
+      count: products.length,
+      data: products,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 // MAIN HOME PAGE
 export default function Home() {
@@ -499,6 +515,18 @@ export default function Home() {
                 </span>
               </Link>
             ))}
+          </div>
+
+          <div className="mt-8 flex items-center justify-between">
+            <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl">
+              Featured Products
+            </h2>     
+            <Link
+              to="/medicines"
+              className="text-sm font-bold text-[#F97316] underline underline-offset-4"
+            >
+              See all
+            </Link>
           </div>
 
           {/* DOCTORS AND STATS */}
