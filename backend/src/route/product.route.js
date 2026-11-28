@@ -4,7 +4,7 @@ import authMiddleware from "../middleware/auth.middleware.js"
 
 const route = express.Router();
 
-route.get("/allproducts", getAllProduct);
+route.get("/allproducts",authMiddleware, getAllProduct);
 route.post("/addproduct", authMiddleware, addProduct)
 
 export default route; 

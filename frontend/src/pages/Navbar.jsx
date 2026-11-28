@@ -1,6 +1,7 @@
 
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import api from "../../api/api.js";
+import { User } from "lucide-react";
 import { useState, useEffect } from "react";
 
 const navItems = [
@@ -193,7 +194,7 @@ const Navbar = () => {
 
         <div className="flex items-center gap-2 sm:gap-3">
 
-          {/* WISHLIST */}
+          {/* WISHLIST
 
           <Link
             to="/wishlist"
@@ -201,7 +202,7 @@ const Navbar = () => {
             className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-xl text-gray-300 transition hover:bg-white/10 hover:text-orange-400"
           >
             ♡
-          </Link>
+          </Link> */}
 
           {/* CART */}
 
@@ -228,7 +229,7 @@ const Navbar = () => {
                 to={profileRoute}
                 className="rounded-full border border-[#b5f36d]/30 px-5 py-2.5 text-sm font-semibold text-[#b5f36d] transition hover:bg-[#b5f36d]/10"
               >
-                My Profile
+               <User />
               </Link>
 
               <button

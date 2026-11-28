@@ -342,6 +342,7 @@ function DoctorRow({ doc }) {
   );
 }
 
+
 // MAIN HOME PAGE
 export default function Home() {
   const [p, setP] = useState(0);
